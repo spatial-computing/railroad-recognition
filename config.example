@@ -1,0 +1,12 @@
+# Can create your own config file based on this
+
+#### GDAL binary executables
+
+gdalsrsinfo: /path/to/gdalsrsinfo_executable
+gdal_translate: /path/to/gdal_translate_executable
+ogr2ogr: /path/to/ogr2ogr/executable
+
+##### Map info
+download_url: /download/url #e.g. https://prd-tnm.s3.amazonaws.com/hm_archive/CA/CA_Smartville_300546_1951_24000_bag.zip
+state: state_name_for_quadrangles # e.g. California
+area: area_name_for_quadrangles # e.g. Bray
