@@ -13,7 +13,7 @@ from IPython import embed
 # https://prd-tnm.s3.amazonaws.com/hm_archive/CA/CA_Bray_100414_2001_24000_bag.zip
 
 
-def download_raster_map(download_url, working_dir="raw_data"):
+def download_raster_map(download_url, working_dir="../raw_data"):
     if 'https:' in download_url:
         filename = download_url.split('/')[-1]
         outfile = os.path.join(working_dir, filename)

@@ -7,8 +7,8 @@ from helper_methods import ogr2ogr
 
 
 def prepare_vector_data(working_dir, quadrangle_state, quadrangle_area):
-    map_boundaries = "USGS_24k_Topo_Map_Boundaries_NAD83inNAD27/USGS_24k_Topo_Map_Boundaries_NAD83inNAD27.shp"
-    vectorized_railroads = r'Trans_RailFeature/Trans_RailFeature.shp'
+    map_boundaries = "../USGS_24k_Topo_Map_Boundaries_NAD83inNAD27/USGS_24k_Topo_Map_Boundaries_NAD83inNAD27.shp"
+    vectorized_railroads = r'../Trans_RailFeature/Trans_RailFeature.shp'
 
     # use USGS quadrangle geometry to clip vector exactly to map area
     # first select quadrangle

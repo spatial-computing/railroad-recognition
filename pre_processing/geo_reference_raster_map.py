@@ -72,7 +72,7 @@ def extract_original_srs(srs_xml_location):
 
 
 def geo_reference_raster_map(map_location, gcp_xml_location):
-    map_boundaries = "USGS_24k_Topo_Map_Boundaries_NAD83inNAD27/USGS_24k_Topo_Map_Boundaries_NAD83inNAD27.shp"
+    map_boundaries = "../USGS_24k_Topo_Map_Boundaries_NAD83inNAD27/USGS_24k_Topo_Map_Boundaries_NAD83inNAD27.shp"
 
     gcp_args_arr = extract_gcp_coordinates(gcp_xml_location)
 
