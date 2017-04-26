@@ -1,3 +1,18 @@
+"""
+Copyright 2017 USC SPatial sciences institue
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+"""
 import os
 import cv2
 import subprocess
@@ -19,6 +34,10 @@ class Data_generator():
 
 
     def setup_directories(self,config_file_path=""):
+        """
+        This function will create the output directory(the final output files)
+        and a temp directory
+        """
         print "Setting up output directories"
         output="output"
         temp="temp"
@@ -36,6 +55,9 @@ class Data_generator():
                input_data[key] = val
 
     def generate_bounding_coordinates(self):
+        """
+        this function will output the extent of the map in the bounding_coordinates.txt
+        """
         check_keys=["map_metadata","gdal_path","map_path"]
         if not set(check_keys).issubset(set(input_data.keys())):
             print "missing entries in config file, Please if these exists1s "+str(check_keys)
@@ -113,7 +135,9 @@ class Data_generator():
         print "Bounding Coordinates Generated , location= "+bounding_cooridnates_filename
 
     def create_blank_raster(self):
-
+        """
+        this function will create an empty raster which will be used to rasterise vector data by other functions
+        """
         check_keys=["map_path"]
 
         if not set(check_keys).issubset(set(input_data.keys())):
@@ -144,9 +168,16 @@ class Data_generator():
         print "created blank raster =  "+output_raster
 
     def rasterize_single_vector(self,vector_path,color,buffer=0,output_png_path=""):
-
+        """
+        this function  will rasterise a single vector on the raster_data.tif with color and buffer as specified
         #if output_png_path is empty, the function wont create the final image, so if you want to rasterize multilpe vector,
         # pass the path in the last call
+        """
+        check_keys=["gdal_path"]
+
+        if not set(check_keys).issubset(set(input_data.keys())):
+            print "missing entries in config file, Please if these exists "+str(check_keys)
+            sys.exit(0)
 
         if "rasterised_vdata" not in input_data.keys():
             self.create_blank_raster()
@@ -175,8 +206,16 @@ class Data_generator():
 
 
     def clip_proj(self,vector_orig):
+        """
+        This function will clip a vector to the extent of the map.
+        If a vector was generated manually, there is no need to clip it. SUch files should be have manual in their name
+        """
         if "manual_" in vector_orig or "clip_proj" in vector_orig:
             return vector_orig
+        check_keys=["quadrangles","gdal_path","map_path","quadrangle_name","quadrangle_state"]
+        if not set(check_keys).issubset(set(input_data.keys())):
+            print "missing entries in config file, Please if these exists "+str(check_keys)
+            sys.exit(0)
         print "start Clipping vector "+vector_orig
         map_tiff_geo = input_data["map_path"]
         gdal=input_data["gdal_path"]
@@ -242,6 +281,11 @@ class Data_generator():
         return  vector
 
     def rasterize_data(self):
+        """
+        this function will rasterize all the vector data from roads, railroads, water and mountain peaks folder using
+        the value provided in the index
+        :return:
+        """
 
         check_keys=["quadrangles","gdal_path","map_path","quadrangle_name","quadrangle_state"]
         if not set(check_keys).issubset(set(input_data.keys())):
@@ -257,6 +301,9 @@ class Data_generator():
                 road_vector=self.clip_proj(road_vector_item)
                 road_feature_name=self.extract_feature_name(road_vector)
                 gdal_rasterize=input_data["gdal_path"]+"gdal_rasterize.exe"
+                if "road_color" not in input_data.keys():
+                    print "Error : road_color not found in config"
+                    sys.exit(0)
                 call=gdal_rasterize+' -b 1 -burn %d -l %s %s %s'%(int(input_data["road_color"]),road_feature_name,road_vector,input_data["rasterised_vdata"])
                 response=subprocess.call(call, shell=True)
                 print "rasterized "+road_feature_name+" with value="+input_data["road_color"]
@@ -264,16 +311,16 @@ class Data_generator():
                 print "!!!!failed "+ road_vector_item
 
 
-        #sys.exit(0)
-
         all_water_vectors=self.list_all_vectors_helper(input_data["water_shapefile"])
         for water_vector_item in all_water_vectors:
             try:
                 water_vector=self.clip_proj(water_vector_item)
-                print water_vector
                 water_feature_name=self.extract_feature_name(water_vector)
                 print water_feature_name
                 gdal_rasterize=input_data["gdal_path"]+"gdal_rasterize.exe"
+                if "water_color" not in input_data.keys():
+                    print "Error : road_color not found in config"
+                    sys.exit()
                 call=gdal_rasterize +' -b 1 -burn %d -l %s %s %s'%(int(input_data["water_color"]),water_feature_name,water_vector,input_data["rasterised_vdata"])
                 print call
                 response=subprocess.check_output(call, shell=True)
@@ -288,6 +335,10 @@ class Data_generator():
                 mountain_vector=self.clip_proj(mountain_vector_item)
                 mountain_feature_name=self.extract_feature_name(mountain_vector)
                 gdal_rasterize=input_data["gdal_path"]+"gdal_rasterize.exe"
+
+                if "mountain_color" not in input_data.keys():
+                    print "Error : road_color not found in config"
+                    sys.exit()
                 call=gdal_rasterize+' -b 1 -burn %d -l %s %s %s'%(int(input_data["mountain_color"]),mountain_feature_name,mountain_vector,input_data["rasterised_vdata"])
                 subprocess.check_output(call, shell=True)
                 print "rasterized "+mountain_feature_name+" with value="+input_data["mountain_color"]
@@ -300,6 +351,9 @@ class Data_generator():
                 railroad_vector=self.clip_proj(railroad_vector_item)
                 railroad_feature_name=self.extract_feature_name(railroad_vector)
                 gdal_rasterize=input_data["gdal_path"]+"gdal_rasterize.exe"
+                if "railroad_color" not in input_data.keys():
+                    print "Error : road_color not found in config"
+                    sys.exit()
                 call=gdal_rasterize+' -b 1 -burn %d -l %s %s %s'%(int(input_data["railroad_color"]),railroad_feature_name,railroad_vector,input_data["rasterised_vdata"])
                 subprocess.check_output(call, shell=True)
                 print "rasterized "+railroad_feature_name+" with value="+input_data["railroad_color"]
@@ -349,6 +403,7 @@ class Data_generator():
         window_sizeby2=int(self.getkey_value("window_size"))/2
         img_orig=cv2.imread(test_image_path,0)
 
+        print "saving locations in output folder, Dont Quit!!"
         for y in range(start_y+window_sizeby2,end_y-window_sizeby2,step):
                     for x in range(start_x,end_x-window_sizeby2,step):
                         for i in range(0,buffer+1):
@@ -373,11 +428,20 @@ class Data_generator():
         end_y=int(coordinates_file.readline())
 
         coordinates_file.close()
-        step=int(input_data["step_training"])
+        if "step_training" not in input_data.keys():
+            print "step training not found in config...Using default=1"
+            step=1
+        else:
+            step=int(input_data["step_training"])
         print "generating positive and negative coordinates,Dont Quit"
         counts=dict()
         count2=dict()
         img_perfect=cv2.imread(input_data["map_compressed"],0)
+
+        if "window_size" not in input_data.keys():
+            print "window_size not found...exiting"
+            sys.exit(0)
+
         window_sizeby2=int(input_data["window_size"])/2
         for y in range(start_y+window_sizeby2,end_y-window_sizeby2,step):
             for x in range(start_x,end_x-window_sizeby2,step):
@@ -409,7 +473,10 @@ class Data_generator():
             if key==wcolor:
                 # counts[key]=random.sample(counts[key],2500)
                 pos=0
-                step_water=int(input_data["water_offset"])
+                if "water_offset" not in input_data.keys():
+                    step_water=0
+                else :
+                    step_water=int(input_data["water_offset"])
                 for entry in counts[key]:
                     outfile_neg.writelines(str(entry[0])+","+str(entry[1])+"\n")
                     if step_water==0:
@@ -444,7 +511,10 @@ class Data_generator():
             elif key==rcolor:
                 #counts[key]=random.sample(counts[key],2500)
                 pos=0
-                step_road=int(input_data["road_offset"])
+                if "road_offset" not in input_data.keys():
+                    step_road=0
+                else :
+                    step_road=int(input_data["road_offset"])
                 for entry in counts[key]:
                     outfile_neg.writelines(str(entry[0])+","+str(entry[1])+"\n")
                     if step_road ==0 :
