@@ -9,7 +9,7 @@ from gdalconst import *
 from xml.etree import ElementTree as ET
 import glob
 
-class Training_Data_generator():
+class Data_generator():
     input_data={}
     def __init__(self, config_path):
         self.setup_directories(config_path)
@@ -18,7 +18,7 @@ class Training_Data_generator():
         return input_data[key]
 
 
-    def setup_directories(self,config_file_path):
+    def setup_directories(self,config_file_path=""):
         print "Setting up output directories"
         output="output"
         temp="temp"
@@ -123,19 +123,19 @@ class Training_Data_generator():
         map=gdal.Open(input_data["map_path"])
         x_min, pixelSizeX, xskew, y_min, yskew, pixelSizeY  = map.GetGeoTransform()
         NoData_value = 0
-
-        # Open the data source and read in the extent
-
         x_max = x_min + (map.RasterXSize *pixelSizeX)
         y_max = y_min + (map.RasterYSize * pixelSizeY)
 
-        # Create the destination data source
-        x_res = int((x_max - x_min) / pixelSizeX)
+        # # # Create the destination data source
         y_res = int((y_max - y_min) / pixelSizeY)
+        x_res = int((x_max - x_min) / pixelSizeX)
+
         output_raster="output/raster_data.tif"
+
         target_ds = gdal.GetDriverByName('GTiff').Create(output_raster, x_res, y_res, 1, gdal.GDT_Byte)
         target_ds.SetProjection(map.GetProjectionRef())
-        target_ds.SetGeoTransform((x_min, pixelSizeX, 0, y_max, 0, -pixelSizeY))
+        a,b,c,d,e,f=map.GetGeoTransform()
+        target_ds.SetGeoTransform((x_min, pixelSizeX, xskew, y_min, yskew, pixelSizeY))#x_min, pixelSizeX, 0, y_max, 0, -pixelSizeY))
         band = target_ds.GetRasterBand(1)
         band.SetNoDataValue(NoData_value)
 
@@ -166,12 +166,12 @@ class Training_Data_generator():
         gdal_rasterize=input_data["gdal_path"]+"gdal_rasterize.exe"
         call=gdal_rasterize+' -b 1 -burn %d -l %s %s %s'%(int(color),feature_name,vector,input_data["rasterised_vdata"])
         response=subprocess.call(call, shell=True)
-        print "rasterized "+feature_name+" with value="+str(color)
+        print "rasterized "+feature_name+" with value= "+str(color)+ "buffer = "+ str(buffer)
 
         if output_png_path != "":
             call=input_data["gdal_path"]+"gdal_translate.exe"+" -of PNG %s %s"%(input_data["rasterised_vdata"],output_png_path)
             subprocess.check_output(call, shell=True)
-            print "created rasterised vector data"+output_png_path
+            print "created rasterised vector data = "+output_png_path
 
 
     def clip_proj(self,vector_orig):
@@ -412,6 +412,8 @@ class Training_Data_generator():
                 step_water=int(input_data["water_offset"])
                 for entry in counts[key]:
                     outfile_neg.writelines(str(entry[0])+","+str(entry[1])+"\n")
+                    if step_water==0:
+                        continue
                     x=entry[1]+step_water
                     y=entry[0]
                     if y>start_y+window_sizeby2  and  y <end_y-window_sizeby2 and x>start_x+window_sizeby2 \
@@ -445,6 +447,8 @@ class Training_Data_generator():
                 step_road=int(input_data["road_offset"])
                 for entry in counts[key]:
                     outfile_neg.writelines(str(entry[0])+","+str(entry[1])+"\n")
+                    if step_road ==0 :
+                        continue
                     x=entry[1]
                     y=entry[0]
 
@@ -478,7 +482,7 @@ class Training_Data_generator():
                         outfile_neg.writelines(str(y)+","+str(x)+"\n")
             elif(key==railcolor):
                 for entry in counts[key]:
-                    outfile_pos.writelines(str(-1*entry[0])+","+str(entry[1])+"\n")
+                    outfile_pos.writelines(str(entry[0])+","+str(entry[1])+"\n")
 
         outfile_pos.close()
         outfile_neg.close()
