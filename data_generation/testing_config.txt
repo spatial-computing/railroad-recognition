@@ -1,7 +1,0 @@
-gdal_path=C:\OSGeo4W64\bin\
-map_path=D:\data\CA_Bray_100414_2001_24000_geo.tif
-map_metadata=D:\data\CA_Bray_100414_2001_24000_geo.xml
-step_testing=1
-window_size=48
-ground_truth=C:\Users\Vinil\Desktop\vinil\data\railroad\manual_correct_vector.shp
-buffer=1
