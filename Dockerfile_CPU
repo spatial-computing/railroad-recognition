@@ -1,0 +1,153 @@
+# FROM defines the base image
+FROM nvidia/cuda:8.0-cudnn5-devel-ubuntu16.04
+
+# RUN executes a shell command
+# You can chain multiple commands together with &&
+# A \ is used to split long lines to help with readability
+
+# Avoid ERROR: invoke-rc.d: policy-rc.d denied execution of start.
+# (https://askubuntu.com/questions/365911/why-the-services-do-not-start-at-installation)
+RUN sed -i "s/^exit 101$/exit 0/" /usr/sbin/policy-rc.d
+
+
+# Install Dependencies
+RUN apt-get update && apt-get install -y \
+    apt-utils \
+    build-essential \
+    cmake \
+    pkg-config \
+    git \
+    curl \
+    vim \
+    byobu \
+    unzip \
+    qt5-default \
+    libffi-dev \
+    libhdf5-dev \
+    libfreetype6-dev \
+    libgdal-dev \
+    checkinstall \
+    liblapack-dev \
+    libblas-dev \
+    libopenblas-dev \
+    libeigen3-dev \
+    libjpeg8-dev \
+    libtiff5-dev \
+    libjasper-dev \
+    libpng12-dev \
+    libavcodec-dev \
+    libavformat-dev \
+    libswscale-dev \
+    libv4l-dev \
+    libxvidcore-dev \
+    libx264-dev \
+    libgtk-3-dev \
+    libatlas-base-dev \
+    gfortran \
+    && \
+  apt-get clean && \
+  apt-get autoremove && \
+  rm -rf /var/lib/apt/lists/*
+
+# Install python
+RUN apt-get update && apt-get install -y \
+    python-dev \
+    python-tk \
+    python-numpy \
+    python-scipy \
+		python-nose \
+		python-h5py \
+		python-skimage \
+		python-matplotlib \
+		python-pandas \
+		python-sklearn \
+		python-sympy \
+		&& \
+	apt-get clean && \
+	apt-get autoremove && \
+	rm -rf /var/lib/apt/lists/*
+
+
+
+  # Install OpenCV
+  ARG OPENCV_DIR=/root/opencv
+  ARG OPENCV_CONTRIB_DIR=/root/opencv_contrib
+  RUN git clone --depth 1 https://github.com/opencv/opencv.git $OPENCV_DIR && \
+    git clone --depth 1 https://github.com/opencv/opencv_contrib $OPENCV_CONTRIB_DIR && \
+  	cd /root/opencv && \
+  	mkdir build && \
+  	cd build && \
+  	cmake \
+      -W no-deprecated-gpu-targets \
+      -D WITH_QT=ON \
+      -D WITH_OPENGL=ON \
+      -D FORCE_VTK=ON \
+      -D WITH_TBB=ON \
+      -D WITH_GDAL=ON \
+      -D WITH_XINE=ON \
+      -D BUILD_EXAMPLES=ON \
+      -D CMAKE_BUILD_TYPE=RELEASE \
+      -D CMAKE_INSTALL_PREFIX=/usr/local \
+      -D WITH_CUDA=OFF \
+      -D INSTALL_PYTHON_EXAMPLES=ON \
+      -D INSTALL_C_EXAMPLES=OFF \
+      -D PYTHON_EXECUTABLE=/usr/bin/python \
+      -D OPENCV_EXTRA_MODULES_PATH=/root/opencv_contrib/modules .. && \
+  	make -j"$(nproc)"  && \
+  	checkinstall && \
+  	ldconfig && \
+  	echo 'ln /dev/null /dev/raw1394' >> ~/.bashrc && \
+    rm -rf $OPENCV_DIR && \
+    rm -rf $OPENCV_CONTRIB_DIR
+
+
+
+# Install pip
+RUN curl -O https://bootstrap.pypa.io/get-pip.py && \
+	  python get-pip.py && \
+	  rm get-pip.py
+
+
+# Add SNI support to Python
+RUN pip --no-cache-dir install \
+		pyopenssl \
+		ndg-httpsclient \
+		pyasn1
+
+
+# Install other useful Python packages using pip
+RUN	pip --no-cache-dir install --upgrade \
+    ipython \
+		Cython \
+		ipykernel \
+		jupyter \
+		path.py \
+		Pillow \
+		pygments \
+		six \
+		sphinx \
+		wheel \
+		zmq \
+		&& \
+	python -m ipykernel.kernelspec
+
+# Install TensorFlow
+RUN pip --no-cache-dir install --upgrade tensorflow
+
+# Install Keras
+RUN pip --no-cache-dir install --upgrade \
+    h5py \
+    keras
+
+
+# Set up notebook config
+COPY jupyter_notebook_config.py /root/.jupyter/
+
+# Jupyter has issues with being run directly: https://github.com/ipython/ipython/issues/7062
+COPY run_jupyter.sh /root/
+
+# Expose Ports for TensorBoard (6006), Ipython (8888)
+EXPOSE 6006 8888
+
+WORKDIR "/root"
+CMD ["/bin/bash"]
