@@ -18,4 +18,4 @@
 	b) for point: the neighbourhood of the point contains the necessary features which we want the model to learn
 		the size of the neighbourhood is defined by the offset
 		so starting from x-offset,y-offset to x+offset,y+offset are included keeping the step= window_size
-		
+9) if a vector was generated manually, please make sure the vector crs is same as the map crs		

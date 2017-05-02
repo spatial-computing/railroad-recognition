@@ -618,13 +618,14 @@ class Data_generator():
 
         print no_neg_samples
         target=min(150000,no_neg_samples/(len(counts)-2))
-        i=0
-        while i<target:
-            x=random.randint(start_x,end_x)
-            y=random.randint(start_y,end_y)
-            if img_perfect[y,x]==0:
-                outfile_neg.writelines(str(y)+","+str(x)+"\n")
-                i+=1
+        
+		#i=0
+        #while i<target:
+        #    x=random.randint(start_x,end_x)
+        #    y=random.randint(start_y,end_y)
+        #    if img_perfect[y,x]==0:
+        #        outfile_neg.writelines(str(y)+","+str(x)+"\n")
+        #        i+=1
 
         outfile_pos.close()
         outfile_neg.close()
