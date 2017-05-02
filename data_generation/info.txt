@@ -1,0 +1,21 @@
+1) please check the sample_usage file for samples
+2) Dependency
+	python:gdal,osgeo,numpy,cv2
+	need to install osgeow in your system
+3) The vectors in traning_vector_positive will be rasterised and their image coordinates will be saved in the positive_coordinates.txt file
+4) The vectors in traning_vector_negative will be rasterised and their image coordinates will be saved in the negative_coordinates.txt file
+5) path,rasterize_value(the value of the vector in the grayscale rasterised image), offset, type: required for vector
+6) the path should point to the parent directory, you can have multiple vector of the same feature in the same folder, all be rasterised with the same value
+7) Currently 3 types of vectors are supported
+	line,point,polygon
+8) the offset_in_pixels info is used according to the vector type
+	a) for line: we save 4 points along with a given point in the line which are at distance=offset in north,south,east and west direction
+		so if the point is x,y we also include
+			x+offset,y
+			x-offset,y
+			x,y+offset
+			x,y-offset
+	b) for point: the neighbourhood of the point contains the necessary features which we want the model to learn
+		the size of the neighbourhood is defined by the offset
+		so starting from x-offset,y-offset to x+offset,y+offset are included keeping the step= window_size
+		

@@ -5,33 +5,34 @@
   "step_training": "1",
   "window_size": "48",
   "step_testing":"1",
-  "ground_truth":"C:\\Users\\Vinil\\Desktop\\vinil\\data\\railroad\\manual_correct_vector.shp",
-  "buffer":"1",
-  "vector_positive": [
+  "testing_ground_truth":"C:\\Users\\Vinil\\Desktop\\vinil\\data\\railroad\\manual_correct_vector.shp",
+  "no_of_buffers_testing":"1",
+  "output_path":"C:\\Users\\Vinil\\PycharmProjects\\Final_data_generation\\output\\",
+  "training_vector_positive": [
     {
       "path": "C:\\Users\\Vinil\\Desktop\\vinil\\data\\railroad\\",
-      "value": "255",
-      "offset": "0",
+      "rasterise_value": "255",
+      "offset_in_pixels": "0",
       "type": "line"
     }
     ],
-  "vector_negative":[
+  "training_vector_negative":[
     {
       "path": "C:\\Users\\Vinil\\Desktop\\vinil\\data\\roads_new\\",
-      "value": "200",
-      "offset": "15",
+      "rasterise_value": "200",
+      "offset_in_pixels": "15",
       "type": "line"
     },
     {
       "path": "C:\\Users\\Vinil\\Downloads\\tl_2016_06093_linearwater_new\\",
-      "value": "199",
-      "offset": "0",
+      "rasterise_value": "199",
+      "offset_in_pixels": "0",
       "type": "line"
     },
     {
       "path": "C:\\Users\\Vinil\\Desktop\\vinil\\data\\mountains\\",
-      "value": "100",
-      "offset": "500",
+      "rasterise_value": "100",
+      "offset_in_pixels": "500",
       "type": "point"
     }
   ]
