@@ -26,6 +26,7 @@ import glob
 from osgeo import ogr
 from osgeo import osr
 import random
+import ntpath
 class Data_generator():
     input_data={}
     vector_info={}
@@ -103,7 +104,7 @@ class Data_generator():
 
         dataset = gdal.Open( input_data["map_path"], GA_ReadOnly )
 
-        print westbc,eastbc,northbc,southbc # coordinates in nad23,convert them
+#        print westbc,eastbc,northbc,southbc # coordinates in nad23,convert them
         self.generate_bounding_shp(westbc,eastbc,northbc,southbc)
 
         source = osr.SpatialReference()
@@ -125,7 +126,6 @@ class Data_generator():
 
         adfGeoTransform = dataset.GetGeoTransform()
 
-        print westbc_geo,northbc_geo,southbc_geo,eastbc_geo
         dfGeoX=float(westbc_geo)
         dfGeoY =float(northbc_geo)
         det = adfGeoTransform[1] * adfGeoTransform[5] - adfGeoTransform[2] *adfGeoTransform[4];
@@ -205,21 +205,20 @@ class Data_generator():
         feature_name=self.extract_feature_name(vector)
         if buffer!=0:
             new_vector="temp/"+feature_name+".shp"
-            ogr2ogr = input_data["gdal_path"]+'ogr2ogr.exe'
+            ogr2ogr = input_data["gdal_path"]+'ogr2ogr'
             call = """%s -f "ESRI Shapefile" %s %s -dialect sqlite -sql "SELECT ST_Union(ST_buffer(Geometry,%f)) FROM '%s'" """ % (ogr2ogr, new_vector, vector,buffer+0.5, feature_name)
-            print call
             response=subprocess.check_output(call, shell=True)
             print response
             vector=new_vector
 
 
-        gdal_rasterize=input_data["gdal_path"]+"gdal_rasterize.exe"
+        gdal_rasterize=input_data["gdal_path"]+"gdal_rasterize"
         call=gdal_rasterize+' -b 1 -burn %d -l %s %s %s'%(int(color),feature_name,vector,input_data["rasterised_vdata"])
         response=subprocess.call(call, shell=True)
         print "rasterized "+feature_name+" with value= "+str(color)+ "buffer = "+ str(buffer)
 
         if output_png_path != "":
-            call=input_data["gdal_path"]+"gdal_translate.exe"+" -of PNG %s %s"%(input_data["rasterised_vdata"],output_png_path)
+            call=input_data["gdal_path"]+"gdal_translate"+" -of PNG %s %s"%(input_data["rasterised_vdata"],output_png_path)
             subprocess.check_output(call, shell=True)
             print "created rasterised vector data = "+output_png_path
 
@@ -240,8 +239,8 @@ class Data_generator():
         map_tiff_geo = input_data["map_path"]
         gdal=input_data["gdal_path"]
         #full path to gdal executables>
-        gdalsrsinfo = gdal+'gdalsrsinfo.exe'
-        ogr2ogr = gdal+'ogr2ogr.exe'
+        gdalsrsinfo = gdal+'gdalsrsinfo'
+        ogr2ogr = gdal+'ogr2ogr'
 
         call = gdalsrsinfo+' -o proj4 "'+vector_orig+'"'
         crs_vector=subprocess.check_output(call, shell=True).strip().replace("'","")
@@ -277,11 +276,9 @@ class Data_generator():
                 vectors.append(item)
         return  vectors
 
-    def extract_feature_name(self,vector):
-        k=vector.rfind("\\")
-        vector=vector[k+1:]
-        vector=vector.replace(".shp","")
-        return  vector
+    def extract_feature_name(self,vector_fullpath):
+        feature_name= os.path.basename(vector_fullpath)
+        return feature_name.replace(".shp","")
 
     def rasterize_data(self):
         """
@@ -298,7 +295,8 @@ class Data_generator():
 
         vectors_negative=input_data["training_vector_negative"]
         for item in vectors_negative:
-            all_vectors=self.list_all_vectors_helper(item["path"])
+            path=item["path"]
+            all_vectors=self.list_all_vectors_helper(path)
             color=item["rasterise_value"]
             offset=item["offset_in_pixels"]
             a=[offset,item["type"],"negative"]
@@ -307,16 +305,18 @@ class Data_generator():
                 try:
                     vector=self.clip_proj(vector_item)
                     vector_feature_name=self.extract_feature_name(vector)
-                    gdal_rasterize=input_data["gdal_path"]+"gdal_rasterize.exe"
+                    gdal_rasterize=input_data["gdal_path"]+"gdal_rasterize"
                     call=gdal_rasterize+' -b 1 -burn %d -l %s %s %s'%(int(color),vector_feature_name,vector,input_data["rasterised_vdata"])
                     response=subprocess.call(call, shell=True)
-                    print "rasterized "+vector_feature_name+" with value="+input_data["road_color"]
+                    print "rasterized "+vector_feature_name+" with value="+color
                 except:
+
                     print "!!!!failed "+ vector_item
 
         vector_positive=input_data["training_vector_positive"]
         for item in vector_positive:
-            all_vectors=self.list_all_vectors_helper(item["path"])
+            path=item["path"]
+            all_vectors=self.list_all_vectors_helper(path)
             color=item["rasterise_value"]
             offset=item["offset_in_pixels"]
             self.vector_info[int(color)]=[int(offset),item["type"],"positive"]
@@ -324,16 +324,17 @@ class Data_generator():
                 try:
                     vector=self.clip_proj(vector_item)
                     vector_feature_name=self.extract_feature_name(vector)
-                    gdal_rasterize=input_data["gdal_path"]+"gdal_rasterize.exe"
+                    gdal_rasterize=input_data["gdal_path"]+"gdal_rasterize"
                     call=gdal_rasterize+' -b 1 -burn %d -l %s %s %s'%(int(color),vector_feature_name,vector,input_data["rasterised_vdata"])
+                    print call
                     response=subprocess.call(call, shell=True)
-                    print "rasterized "+vector_feature_name+" with value="+input_data["road_color"]
+                    print "rasterized "+vector_feature_name+" with value="+color
                 except:
                     print "!!!!failed "+ vector_item
 
         input_data["map_compressed"]=input_data["output_path"]+"raster_data.png"
         try:
-            call=input_data["gdal_path"]+"gdal_translate.exe"+" -of PNG %s %s"%(input_data["rasterised_vdata"],input_data["map_compressed"])
+            call=input_data["gdal_path"]+"gdal_translate"+" -of PNG %s %s"%(input_data["rasterised_vdata"],input_data["map_compressed"])
             subprocess.check_output(call, shell=True)
             print "created rasterised vector data"+input_data["map_compressed"]
 
@@ -536,7 +537,6 @@ class Data_generator():
                         counts[i].append([y,x])
         outfile_pos=open(input_data["output_path"]+"positive_coordinates1.txt","w")
         outfile_neg=open(input_data["output_path"]+"negative_coordinates1.txt","w")
-        no_of_random_samples=0
 
         no_neg_samples=0
         for key in counts:
@@ -605,7 +605,6 @@ class Data_generator():
                         if is_neg:
                             no_neg_samples+=1
 
-        print no_neg_samples
         # target=min(150000,no_neg_samples/(len(counts)-2))
         # i=0
         # while i<target:
@@ -621,9 +620,3 @@ class Data_generator():
         print "Positive Coordinates = " + input_data["output_path"]+"positive_coordinates.txt"
         print "negative Coordinates = " + input_data["output_path"]+"negative_coordinates.txt"
         return
-
-
-
-
-
-
