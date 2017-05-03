@@ -100,38 +100,28 @@ class Data_generator():
         northbc=xml.find("./idinfo/spdom/bounding/northbc").text
         southbc=xml.find("./idinfo/spdom/bounding/southbc").text
 
-        print westbc,eastbc,northbc,southbc # coordinates in nad23,convert them
-        self.generate_bounding_shp(westbc,eastbc,northbc,southbc)
-        if "crs_raster" in input_data.keys():
-            crs_raster=input_data["crs_raster"]
-        else:
-            call = input_data["gdal_path"]+"gdalsrsinfo.exe" +' -o proj4 "'+input_data["map_path"]+'"'
-            crs_raster=subprocess.check_output(call, shell=True).strip().replace("'","")
-            input_data["crs_raster"]=crs_raster
-
-        call2=input_data["gdal_path"]+'gdaltransform.exe  -t_srs "'+crs_raster+ '" -s_srs EPSG:4267'
-        #print call2
-
-        p = subprocess.Popen(call2,stdout=subprocess.PIPE,stdin=subprocess.PIPE)
-
-        c=eastbc+" "+southbc
-
-        p.stdin.write(c)
-        temp=p.communicate()[0].split(" ")
-        eastbc_geo=temp[0]
-        southbc_geo=temp[1]
-        p.stdin.close()
-
-        p = subprocess.Popen(call2,stdout=subprocess.PIPE,stdin=subprocess.PIPE)
-        c=westbc+" "+northbc
-        p.stdin.write(c)
-        temp=p.communicate()[0].split(" ")
-        westbc_geo=temp[0]
-        northbc_geo=temp[1]
-        p.stdin.close()
-
 
         dataset = gdal.Open( input_data["map_path"], GA_ReadOnly )
+
+        print westbc,eastbc,northbc,southbc # coordinates in nad23,convert them
+        self.generate_bounding_shp(westbc,eastbc,northbc,southbc)
+
+        source = osr.SpatialReference()
+        source.ImportFromEPSG(4267)
+
+        target = osr.SpatialReference()
+        target.ImportFromWkt(dataset.GetProjection())
+
+        transform = osr.CoordinateTransformation(source, target)
+        point = ogr.CreateGeometryFromWkt("POINT ("+eastbc +" "+ southbc+" )")
+        point.Transform(transform)
+        eastbc_geo=str(point.GetX())
+        southbc_geo=str(point.GetY())
+
+        point = ogr.CreateGeometryFromWkt("POINT ("+westbc +" "+ northbc+" )")
+        point.Transform(transform)
+        westbc_geo=str(point.GetX())
+        northbc_geo=str(point.GetY())
 
         adfGeoTransform = dataset.GetGeoTransform()
 
@@ -140,9 +130,9 @@ class Data_generator():
         dfGeoY =float(northbc_geo)
         det = adfGeoTransform[1] * adfGeoTransform[5] - adfGeoTransform[2] *adfGeoTransform[4];
         X = ((dfGeoX - adfGeoTransform[0]) * adfGeoTransform[5] - (dfGeoY -
-        adfGeoTransform[3]) * adfGeoTransform[2]) / det;
+        adfGeoTransform[3]) * adfGeoTransform[2]) / det
         Y = ((dfGeoY - adfGeoTransform[3]) * adfGeoTransform[1] - (dfGeoX -
-        adfGeoTransform[0]) * adfGeoTransform[4]) / det;
+        adfGeoTransform[0]) * adfGeoTransform[4]) / det
 
         output_file.writelines(str(int(X))+"\n")  #start_x
         output_file.writelines(str(int(Y))+"\n")  #start_y
@@ -151,9 +141,9 @@ class Data_generator():
         dfGeoY =float(southbc_geo)
         det = adfGeoTransform[1] * adfGeoTransform[5] - adfGeoTransform[2] *adfGeoTransform[4];
         X = ((dfGeoX - adfGeoTransform[0]) * adfGeoTransform[5] - (dfGeoY -
-        adfGeoTransform[3]) * adfGeoTransform[2]) / det;
+        adfGeoTransform[3]) * adfGeoTransform[2]) / det
         Y = ((dfGeoY - adfGeoTransform[3]) * adfGeoTransform[1] - (dfGeoX -
-        adfGeoTransform[0]) * adfGeoTransform[4]) / det;
+        adfGeoTransform[0]) * adfGeoTransform[4]) / det
 
 
         output_file.writelines(str(int(X))+"\n")  #end_x
@@ -262,7 +252,8 @@ class Data_generator():
             call = gdalsrsinfo+' -o proj4 "'+map_tiff_geo+'"'
             crs_raster=subprocess.check_output(call, shell=True).strip().replace("'","")
             input_data["crs_raster"]=crs_raster
-        if crs_vector==crs_vector:
+        if crs_vector==crs_raster:
+            print "not clipping the vector"
             return vector_orig
         #clip
         vector_clip=vector_orig.replace('.shp','_clip.shp')
@@ -546,8 +537,6 @@ class Data_generator():
         outfile_pos=open(input_data["output_path"]+"positive_coordinates1.txt","w")
         outfile_neg=open(input_data["output_path"]+"negative_coordinates1.txt","w")
         no_of_random_samples=0
-        # for key in counts:
-        #     print key,len(counts[key])
 
         no_neg_samples=0
         for key in counts:
@@ -617,15 +606,14 @@ class Data_generator():
                             no_neg_samples+=1
 
         print no_neg_samples
-        target=min(150000,no_neg_samples/(len(counts)-2))
-        
-		#i=0
-        #while i<target:
-        #    x=random.randint(start_x,end_x)
-        #    y=random.randint(start_y,end_y)
-        #    if img_perfect[y,x]==0:
-        #        outfile_neg.writelines(str(y)+","+str(x)+"\n")
-        #        i+=1
+        # target=min(150000,no_neg_samples/(len(counts)-2))
+        # i=0
+        # while i<target:
+        #     x=random.randint(start_x,end_x)
+        #     y=random.randint(start_y,end_y)
+        #     if img_perfect[y,x]==0:
+        #         outfile_neg.writelines(str(y)+","+str(x)+"\n")
+        #         i+=1
 
         outfile_pos.close()
         outfile_neg.close()
