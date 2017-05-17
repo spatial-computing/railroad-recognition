@@ -1,5 +1,5 @@
 {
-  "gdal_path": "C:\\OSGeo4W64\\bin\\",
+  "gdal_path": "C:/OSGeo4W64/bin/",
   "map_path": "D:\\data\\CA_Bray_100414_2001_24000_geo.tif",
   "map_metadata": "D:\\data\\CA_Bray_100414_2001_24000_geo.xml",
   "step_training": "1",
@@ -8,32 +8,37 @@
   "testing_ground_truth":"C:\\Users\\Vinil\\Desktop\\vinil\\data\\railroad\\manual_correct_vector.shp",
   "no_of_buffers_testing":"1",
   "output_path":"C:\\Users\\Vinil\\PycharmProjects\\Final_data_generation\\output\\",
+  "number_of_random_samples":"0",
   "training_vector_positive": [
     {
       "path": "C:\\Users\\Vinil\\Desktop\\vinil\\data\\railroad\\",
       "rasterise_value": "255",
       "offset_in_pixels": "0",
-      "type": "line"
+      "type": "line",
+      "max_number_of_samples": "-1"
     }
     ],
   "training_vector_negative":[
     {
       "path": "C:\\Users\\Vinil\\Desktop\\vinil\\data\\roads_new\\",
       "rasterise_value": "200",
-      "offset_in_pixels": "15",
-      "type": "line"
+      "offset_in_pixels": "0",
+      "type": "line",
+      "max_number_of_samples":"-1"
     },
     {
-      "path": "C:\\Users\\Vinil\\Downloads\\tl_2016_06093_linearwater_new\\",
+      "path": "C:\\Users\\Vinil\\Desktop\\vinil\\data\\water\\",
       "rasterise_value": "199",
       "offset_in_pixels": "0",
-      "type": "line"
+      "type": "line",
+      "max_number_of_samples":"-1"
     },
     {
       "path": "C:\\Users\\Vinil\\Desktop\\vinil\\data\\mountains\\",
       "rasterise_value": "100",
       "offset_in_pixels": "500",
-      "type": "point"
+      "type": "point",
+      "max_number_of_samples": "-1"
     }
   ]
 }

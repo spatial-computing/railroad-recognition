@@ -26,7 +26,8 @@ import glob
 from osgeo import ogr
 from osgeo import osr
 import random
-import ntpath
+import numpy as np
+
 class Data_generator():
     input_data={}
     vector_info={}
@@ -43,14 +44,19 @@ class Data_generator():
         This function will create the output directory(the final output files)
         and a temp directory
         """
-        print "Setting up output directories"
-        temp="temp"
-        if not os.path.exists(temp):
-            os.makedirs(temp)
         config_data=open(config_file_path)
         json_data=json.load(config_data)
         for key,val in json_data.items():
             input_data[key]=val
+
+        print "Setting up output directories"
+        temp="temp"
+        if not os.path.exists(temp):
+            os.makedirs(temp)
+        temp=input_data["output_path"]
+        if not os.path.exists(temp):
+            os.makedirs(temp)
+
 
     def generate_bounding_shp(self,westbc,eastbc,northbc,southbc):
 
@@ -259,7 +265,7 @@ class Data_generator():
         bouding_polygon=input_data["bouding_bouding_coordinatesnad83.json"]
         call = '%s -dim 2 -clipsrc %s %s %s ' % (ogr2ogr, bouding_polygon, vector_clip, vector_orig)
         response=subprocess.check_output(call, shell=True)
-
+        print call
         # Reproject vector geometry to same projection as raster
         vector_proj = vector_clip.replace('.shp','_proj.shp')
         call = ogr2ogr+' -t_srs "'+crs_raster+'" -s_srs "'+crs_vector+'" "'+vector_proj+'" "'+vector_clip+'"'
@@ -293,14 +299,48 @@ class Data_generator():
             print "Missing blank raster,make sure you have called create_blank_raster_api"
             sys.exit(0)
 
+
+        # vectors_negative=input_data["training_vector_negative"]
+        # for item in vectors_negative:
+        #     path=item["path"]
+        #     all_vectors=self.list_all_vectors_helper(path)
+        #     color=item["rasterise_value"]
+        #     offset=item["offset_in_pixels"]
+        #     a=[offset,item["type"],"negative"]
+        #     self.vector_info[int(color)]=[offset,item["type"],"negative"]
+        #     for vector_item in all_vectors:
+        #         try:
+        #             #vector=self.clip_proj(vector_item)
+        #             if offset>0 and type!="point":
+        #                 self.rasterize_single_vector(vector_item,1,24)
+        #         except:
+        #             raise
+        #
+        #             print "!!!!failed "+ vector_item
+        #
+        # vector_positive=input_data["training_vector_positive"]
+        # for item in vector_positive:
+        #     path=item["path"]
+        #     all_vectors=self.list_all_vectors_helper(path)
+        #     color=item["rasterise_value"]
+        #     offset=item["offset_in_pixels"]
+        #     self.vector_info[int(color)]=[int(offset),item["type"],"positive"]
+        #     for vector_item in all_vectors:
+        #         try:
+        #             vector=self.clip_proj(vector_item)
+        #             if offset>0:
+        #                 self.rasterize_single_vector(vector,1,24)
+        #         except:
+        #             print "!!!!failed "+ vector_item
+
         vectors_negative=input_data["training_vector_negative"]
         for item in vectors_negative:
             path=item["path"]
             all_vectors=self.list_all_vectors_helper(path)
             color=item["rasterise_value"]
             offset=item["offset_in_pixels"]
-            a=[offset,item["type"],"negative"]
-            self.vector_info[int(color)]=[offset,item["type"],"negative"]
+            limit_samples=item["max_number_of_samples"]
+            self.vector_info[int(color)]=[offset,item["type"],"negative",limit_samples]
             for vector_item in all_vectors:
                 try:
                     vector=self.clip_proj(vector_item)
@@ -319,7 +359,8 @@ class Data_generator():
             all_vectors=self.list_all_vectors_helper(path)
             color=item["rasterise_value"]
             offset=item["offset_in_pixels"]
-            self.vector_info[int(color)]=[int(offset),item["type"],"positive"]
+            limit_samples=item["max_number_of_samples"]
+            self.vector_info[int(color)]=[int(offset),item["type"],"positive",limit_samples]
             for vector_item in all_vectors:
                 try:
                     vector=self.clip_proj(vector_item)
@@ -384,115 +425,9 @@ class Data_generator():
         for f in outfiles:
             f.close()
 
-    # def generate_positive_negative_coordinates(self):
-    #     if not "map_compressed" in input_data.keys():
-    #         print "Rasterize data first"
-    #         sys.exit(0)
-    #     check_keys=["step_training","window_size"]
-    #     if not set(check_keys).issubset(set(input_data.keys())):
-    #         print "missing entries in config file, Please if these exists "+str(check_keys)
-    #         sys.exit(0)
-    #     coordinates_file=open(input_data["output_path"]+"/bounding_coordinates.txt","r")
-    #
-    #     start_x=int(coordinates_file.readline())
-    #     start_y=int(coordinates_file.readline())
-    #
-    #     end_x=int(coordinates_file.readline())
-    #     end_y=int(coordinates_file.readline())
-    #
-    #     coordinates_file.close()
-    #     if "step_training" not in input_data.keys():
-    #         print "step training not found in config...Using default=1"
-    #         step=1
-    #     else:
-    #         step=int(input_data["step_training"])
-    #
-    #     print "generating positive and negative coordinates,Dont Quit"
-    #     counts=dict()
-    #     count2=dict()
-    #     img_perfect=cv2.imread(input_data["map_compressed"],0)
-    #
-    #     if "window_size" not in input_data.keys():
-    #         print "window_size not found...exiting"
-    #         sys.exit(0)
-    #
-    #     window_sizeby2=int(input_data["window_size"])/2
-    #
-    #     for y in range(start_y+window_sizeby2,end_y-window_sizeby2,step):
-    #         for x in range(start_x,end_x-window_sizeby2,step):
-    #             if img_perfect[y,x]>0:
-    #                 # total+=1
-    #                 i=img_perfect[y,x]
-    #                 count2[i]=count2.get(i,0)+1
-    #                 if(counts.get(i)==None):
-    #                     counts[i]=[[y,x]]
-    #                 else:
-    #                     counts[i].append([y,x])
-    #     outfile_pos=open(input_data["output_path"]+"positive_coordinates.txt","w")
-    #     outfile_neg=open(input_data["output_path"]+"negative_coordinates.txt","w")
-    #
-    #     for key in counts:
-    #         print key,len(counts[key])
-    #     for key in counts:
-    #         print key,
-    #         vector_info_item=self.vector_info[key]
-    #         offset=int(vector_info_item[0])
-    #         if vector_info_item[2]=="positive":
-    #             out=outfile_pos
-    #         else: out=outfile_neg
-    #         type=vector_info_item[1]
-    #         if type=="point":
-    #
-    #             for entry in counts[key]:
-    #                  for x in range(entry[0]-offset/2,entry[0]+offset/2,window_sizeby2):
-    #                     for y in range(entry[1]-offset/2,entry[1]+offset/2,window_sizeby2):
-    #                         if y>start_y+window_sizeby2  and  y <end_y-window_sizeby2 and x>start_x+window_sizeby2 \
-    #                                 and x<end_x-window_sizeby2 and img_perfect[y,x]!=255:
-    #                             out.writelines(str(y)+","+str(x)+"\n")
-    #         elif vector_info_item[1]=="line":
-    #             # counts[key]=random.sample(counts[key],2500)
-    #             pos=0
-    #             for entry in counts[key]:
-    #                 out.writelines(str(entry[0])+","+str(entry[1])+"\n")
-    #                 if offset==0:
-    #                     continue
-    #                 x=entry[1]+offset
-    #                 y=entry[0]
-    #                 if y>start_y+window_sizeby2  and  y <end_y-window_sizeby2 and x>start_x+window_sizeby2 \
-    #                                 and x<end_x-window_sizeby2 and img_perfect[y,x]!=255:
-    #                     pos+=1
-    #                     out.writelines(str(y)+","+str(x)+"\n")
-    #
-    #                 x=entry[1]-offset
-    #                 y=entry[0]
-    #                 if y>start_y+window_sizeby2  and  y <end_y-window_sizeby2 and x>start_x+window_sizeby2 \
-    #                                 and x<end_x-window_sizeby2 and img_perfect[y,x]!=255:
-    #                     pos+=1
-    #                     out.writelines(str(y)+","+str(x)+"\n")
-    #
-    #                 x=entry[1]
-    #                 y=entry[0]-offset
-    #                 if y>start_y+window_sizeby2  and  y <end_y-window_sizeby2 and x>start_x+window_sizeby2 \
-    #                                 and x<end_x-window_sizeby2 and img_perfect[y,x]!=255:
-    #                     pos+=1
-    #                     out.writelines(str(y)+","+str(x)+"\n")
-    #
-    #                 x=entry[1]
-    #                 y=entry[0]+offset
-    #                 if y>start_y+window_sizeby2  and  y <end_y-window_sizeby2 and x>start_x+window_sizeby2 \
-    #                                 and x<end_x-window_sizeby2 and img_perfect[y,x]!=255:
-    #                     pos+=1
-    #                     out.writelines(str(y)+","+str(x)+"\n")
-    #
-    #     outfile_pos.close()
-    #     outfile_neg.close()
-    #
-    #     print "Positive Coordinates = " + input_data["output_path"]+"positive_coordinates.txt"
-    #     print "negative Coordinates = " + input_data["output_path"]+"negative_coordinates.txt"
-    #     return
-
     def generate_positive_negative_coordinates(self):
         print "generate_positive_negative_coordinates2"
+
         if not "map_compressed" in input_data.keys():
             print "Rasterize data first"
             sys.exit(0)
@@ -535,15 +470,18 @@ class Data_generator():
                         counts[i]=[[y,x]]
                     else:
                         counts[i].append([y,x])
-        outfile_pos=open(input_data["output_path"]+"positive_coordinates1.txt","w")
-        outfile_neg=open(input_data["output_path"]+"negative_coordinates1.txt","w")
+        outfile_pos=open(input_data["output_path"]+"positive_coordinates.txt","w")
+        outfile_neg=open(input_data["output_path"]+"negative_coordinates.txt","w")
 
         no_neg_samples=0
         for key in counts:
             if key==0:
                 continue
+            samples=[]
+
             vector_info_item=self.vector_info[key]
             offset=int(vector_info_item[0])
+            max_number_of_samples=int(vector_info_item[3])
             is_neg=1
             if vector_info_item[2]=="positive":
                 out=outfile_pos
@@ -551,20 +489,23 @@ class Data_generator():
             else: out=outfile_neg
             type=vector_info_item[1]
             if type=="point":
-
+                step=4
                 for entry in counts[key]:
-                     for x in range(entry[0]-offset/2,entry[0]+offset/2,window_sizeby2):
-                        for y in range(entry[1]-offset/2,entry[1]+offset/2,window_sizeby2):
+                     for y in range(entry[0]-offset/2,entry[0]+offset/2,step):
+                        for x in range(entry[1]-offset/2,entry[1]+offset/2,step):
                             if y>start_y+window_sizeby2  and  y <end_y-window_sizeby2 and x>start_x+window_sizeby2 \
                                     and x<end_x-window_sizeby2 and img_perfect[y,x]!=255:
-                                out.writelines(str(y)+","+str(x)+"\n")
+                                samples.append([y,x])
+                                #out.writelines(str(y)+","+str(x)+"\n")
                                 if is_neg:
                                     no_neg_samples+=1
+
             elif vector_info_item[1]=="line":
-                # counts[key]=random.sample(counts[key],2500)
+
                 pos=0
                 for entry in counts[key]:
-                    out.writelines(str(entry[0])+","+str(entry[1])+"\n")
+                    #out.writelines(str(entry[0])+","+str(entry[1])+"\n")
+                    samples.append([str(entry[0]),str(entry[1])])
                     if is_neg:
                         no_neg_samples+=1
                     if offset==0:
@@ -574,7 +515,8 @@ class Data_generator():
                     if y>start_y+window_sizeby2  and  y <end_y-window_sizeby2 and x>start_x+window_sizeby2 \
                                     and x<end_x-window_sizeby2 and img_perfect[y,x]!=255:
                         pos+=1
-                        out.writelines(str(y)+","+str(x)+"\n")
+                        samples.append([y,x])
+                        #out.writelines(str(y)+","+str(x)+"\n")
                         if is_neg:
                             no_neg_samples+=1
 
@@ -583,7 +525,8 @@ class Data_generator():
                     if y>start_y+window_sizeby2  and  y <end_y-window_sizeby2 and x>start_x+window_sizeby2 \
                                     and x<end_x-window_sizeby2 and img_perfect[y,x]!=255:
                         pos+=1
-                        out.writelines(str(y)+","+str(x)+"\n")
+                        #out.writelines(str(y)+","+str(x)+"\n")
+                        samples.append([y,x])
                         if is_neg:
                             no_neg_samples+=1
 
@@ -592,7 +535,8 @@ class Data_generator():
                     if y>start_y+window_sizeby2  and  y <end_y-window_sizeby2 and x>start_x+window_sizeby2 \
                                     and x<end_x-window_sizeby2 and img_perfect[y,x]!=255:
                         pos+=1
-                        out.writelines(str(y)+","+str(x)+"\n")
+                        # out.writelines(str(y)+","+str(x)+"\n")
+                        samples.append([y,x])
                         if is_neg:
                             no_neg_samples+=1
 
@@ -601,22 +545,67 @@ class Data_generator():
                     if y>start_y+window_sizeby2  and  y <end_y-window_sizeby2 and x>start_x+window_sizeby2 \
                                     and x<end_x-window_sizeby2 and img_perfect[y,x]!=255:
                         pos+=1
-                        out.writelines(str(y)+","+str(x)+"\n")
+                        # out.writelines(str(y)+","+str(x)+"\n")
+                        samples.append([y,x])
                         if is_neg:
                             no_neg_samples+=1
+            else:
+                for entry in counts[key]:
+                    # out.writelines(str(entry[0])+","+str(entry[1])+"\n")
+                    samples.append([str(entry[0]),str(entry[1])])
+                    if is_neg:
+                        no_neg_samples+=1
 
-        # target=min(150000,no_neg_samples/(len(counts)-2))
-        # i=0
-        # while i<target:
-        #     x=random.randint(start_x,end_x)
-        #     y=random.randint(start_y,end_y)
-        #     if img_perfect[y,x]==0:
-        #         outfile_neg.writelines(str(y)+","+str(x)+"\n")
-        #         i+=1
+            if max_number_of_samples>0 and max_number_of_samples< len(samples):
+                samples=random.sample(samples,max_number_of_samples)
+            individual_feature_data=open(input_data["output_path"]+str(key)+".txt","w")
+            for item in samples:
+                out.writelines(str(item[0])+","+str(item[1])+"\n")
+                individual_feature_data.writelines(str(item[0])+","+str(item[1])+"\n")
+            individual_feature_data.close()
+            max_number_of_samples=-1
+            samples=[]
+
+        #the following code can be used to generate random samples
+
+        target=int(input_data["number_of_random_samples"])
+        individual_feature_data=open(input_data["output_path"]+str("random")+".txt","w")
+        i=0
+        while i<target:
+            x=random.randint(start_x,end_x)
+            y=random.randint(start_y,end_y)
+            if img_perfect[y,x]==0:
+                outfile_neg.writelines(str(y)+","+str(x)+"\n")
+                individual_feature_data.writelines(str(item[0])+","+str(item[1])+"\n")
+                i+=1
 
         outfile_pos.close()
         outfile_neg.close()
 
         print "Positive Coordinates = " + input_data["output_path"]+"positive_coordinates.txt"
         print "negative Coordinates = " + input_data["output_path"]+"negative_coordinates.txt"
+        self.plot_samples()
         return
+
+    def plot_samples(self):
+
+        data_pos=np.loadtxt(input_data["output_path"]+"positive_coordinates1.txt",dtype=int,delimiter=',')
+        data_neg=np.loadtxt(input_data["output_path"]+"negative_coordinates1.txt",dtype=int,delimiter=',')
+
+        map_geo=cv2.imread(input_data["map_path"])
+        output=map_geo.copy()
+        for item in data_pos:
+            cv2.circle(map_geo,(item[1],item[0]),11, (0,0,255), -1)
+        for item in data_neg:
+            cv2.circle(map_geo,(item[1],item[0]),11, (255,0,0), -1)
+
+
+        alpha=0.5
+        cv2.addWeighted(map_geo, alpha, output, 1 - alpha,
+                0, output)
+        encode_param = [int(cv2.IMWRITE_JPEG_QUALITY), 70]
+        result, encimg = cv2.imencode('.jpg', output, encode_param)
+        decimg = cv2.imdecode(encimg, 1)
+        cv2.imwrite(input_data["output_path"]+"plot_samples.jpg",decimg)
+
+        print "samples plotted in "+input_data["output_path"]+"plot_samples.jpg"
