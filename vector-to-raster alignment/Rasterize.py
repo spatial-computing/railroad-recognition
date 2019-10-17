@@ -1,13 +1,14 @@
 import cv2
 import numpy as np
 import os
+import sys
 
-map_path = "C:\Users\weiweiduan\Documents\Map_proj_data\CA\CA_Bray_100414_2001_24000_bag\data\CA_Bray_100414_2001_24000_geo.png"
+map_path = sys.args[1]
 map_img = cv2.imread(map_path)
 print map_img.shape
 count = 0
 aligned_shp = np.zeros((map_img.shape[0],map_img.shape[1],map_img.shape[2]))
-for root, dirs, files in os.walk("C:\Users\weiweiduan\Documents\Alignment_RL\Bray_railroads_1950_alignment"):
+for root, dirs, files in os.walk(sys.args[2]):
     print files
     for f in files:
         print f
