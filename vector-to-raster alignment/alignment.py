@@ -9,6 +9,7 @@ import fnmatch
 import os
 from concurrent.futures import ThreadPoolExecutor
 import os.path
+import sys
 
 def color_gradient(map_hsv, p1, p2):
     x_min = min(p1[0], p2[0])
