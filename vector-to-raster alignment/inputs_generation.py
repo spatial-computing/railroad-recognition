@@ -4,7 +4,7 @@ import gdal
 from gdalconst import *
 import subprocess
 import math
-
+import sys
 
 def convert_to_image_coord(x,y,path): # convert geocoord to image coordinate
     dataset = gdal.Open( path, GA_ReadOnly )
@@ -22,8 +22,8 @@ def convert_to_image_coord(x,y,path): # convert geocoord to image coordinate
     return [int(Y),int(X)]
 
 
-map_path = "C:\Users\weiweiduan\Documents\Map_proj_data\CA\CA_Bray_100414_2001_24000_bag\data\CA_Bray_100414_2001_24000_geo.tif"
-ds = ogr.Open('C:\Users\weiweiduan\Documents\Map_proj_data\CA\CA_Bray_100414_2001_24000_bag\data\Original_shp\Trans_RailFeature_clip_proj.shp')
+map_path = sys.args[1]
+ds = ogr.Open(sys.args[2])
 layer = ds.GetLayer(0)
 f = layer.GetNextFeature()
 
@@ -34,7 +34,7 @@ while f:
     # points = geom.GetPoints()
         points = geom.ExportToJson()
         points = eval(points)
-        outputfile = open("Bray_railroads_2001/Bray_railroads_2001_"+str(count)+".txt","w")
+        outputfile = open(sys.args[3]+str(count)+".txt","w")
         if points['type'] == "MultiLineString":
             for i in points["coordinates"]:
                 for j in i:
