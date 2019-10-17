@@ -3,7 +3,7 @@ This Github has three scripts.
 
 - readShp.py: process the shapefile, convert the shapefile into multiple txt files storing vector points. 
 The script saves the txt files in a folder. The txt files are the inputs of the alignment.py
-command: python readShp.py /path/to/shapefile /path/to/georeferenced_map /path/to/outputs_folder
+command: python readShp.py /path/to/georeferenced_map /path/to/shapefile /path/to/outputs_folder
 
 - alignment.py: the main script for the vector-to-raster alignment algorithm. The script saves the alignment vector data in a folder.
 command: python alignment.py /path/to/txt_folder /path/to/map /path/to/output_folder
