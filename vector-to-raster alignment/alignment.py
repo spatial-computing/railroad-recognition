@@ -269,8 +269,8 @@ map_int = map_img.astype('int32')
 dis = 50
 dis_interpolate = 15
 win_size = 30
-color_low_bound = [60,120,120]
-color_high_bound = [180,225,225]
+color_low_bound = [0,0,0]#[60,120,120]
+color_high_bound = [120,120,120]#[180,225,225]
 # feature_color = [200,255,255]
 for root, dirs, files in os.walk(sys.args[1]):
     for f in files:
