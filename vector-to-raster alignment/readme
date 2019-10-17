@@ -1,0 +1,17 @@
+The goal of vector-to-raster alignment algorithm is to align vector data to the goegraphic objects, such as railroads, in the georeferenced maps.
+This Github has three scripts. 
+
+- readShp.py: process the shapefile, convert the shapefile into multiple txt files storing vector points. 
+The script saves the txt files in a folder. The txt files are the inputs of the alignment.py
+command: python readShp.py /path/to/shapefile /path/to/georeferenced_map /path/to/outputs_folder
+
+- alignment.py: the main script for the vector-to-raster alignment algorithm. The script saves the alignment vector data in a folder.
+command: python alignment.py /path/to/map /path/to/txt_folder /path/to/output_folder
+
+- rasterize.py: draw the vector data from the alignment script in a black image which is the same size of map.
+command python rasterize.py /path/to/folder /path/to/map
+
+Data is stored in Google Driver https://www.dropbox.com/sh/iwat21f3ji3jg68/AAAHhzwnPJ44JGLvYVAL65a1a?dl=0
+The map is a USGS topographic historical map covered Bray, CA, circa 2001
+It has two formats, tiff and png. Tiff is for readShp.py, and png is for alignment.py and rasterize.py
+shapefile is the contemporary railroads vector data in the shapefile folder downloaded from the USGS website.
