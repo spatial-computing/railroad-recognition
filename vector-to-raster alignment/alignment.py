@@ -260,10 +260,7 @@ def greedy(Q_func, state, action, Q, point, record, movement, feature_color_low,
     a, aa = choose_action(Q, p_rand)
     return str(p_rand)+str(a)+str(aa)
 
-# map_path = "C:\Users\weiweiduan\Documents\Map_proj_data\CA\CA_Bray_100414_2001_24000_bag\data\CA_Bray_100414_2001_24000_geo.tif"
-# map_path = "C:\Users\weiweiduan\Documents\Map_proj_data\CO\CO_Louisville_450543_1965_24000_bag\data\CO_Louisville_450543_1965_24000_geo.tif"
-map_path = "C:\Users\weiweiduan\Documents\Map_proj_data\CO\CO_Boulder_400204_1966_24000_bag\data\CO_Boulder_1966_24000_degeo.png"
-# shp_path = 'C:\Users\weiweiduan\Documents\Map_proj_data\CA\CA_Bray_100414_2001_24000_bag\data\Original_shp\\Trans_RailFeature_clip_proj.shp'
+map_path = sys.args[2]
 map_img = cv2.imread(map_path)
 map_img = cv2.cvtColor(map_img, cv2.COLOR_BGR2RGB)
 map_int = map_img.astype('int32')
@@ -274,11 +271,11 @@ win_size = 30
 color_low_bound = [60,120,120]
 color_high_bound = [180,225,225]
 # feature_color = [200,255,255]
-for root, dirs, files in os.walk("C:\Users\weiweiduan\Documents\Alignment_RL\Boulder_waterlines"):
+for root, dirs, files in os.walk(sys.args[1]):
     for f in files:
-        if not os.path.exists('C:\Users\weiweiduan\Documents\Alignment_RL\\Boulder_waterlines_alignment\\'+f[:-4]+"_align.txt"):
+        if not os.path.exists(sys.args[3]+'\\'+f[:-4]+"_align.txt"):
             inputfile = open(root+'/'+f, 'r')
-            outputfile = open('C:\Users\weiweiduan\Documents\Alignment_RL\\Boulder_waterlines_alignment\\'+f[:-4]+"_align.txt", 'w')
+            outputfile = open(sys.args[3]+'\\'+f[:-4]+"_align.txt", 'w')
             outputfile.writelines('x,y'+'\n')
             tmpt = []
             points = []
