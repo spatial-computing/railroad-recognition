@@ -6,7 +6,7 @@ The script saves the txt files in a folder. The txt files are the inputs of the 
 command: python readShp.py /path/to/shapefile /path/to/georeferenced_map /path/to/outputs_folder
 
 - alignment.py: the main script for the vector-to-raster alignment algorithm. The script saves the alignment vector data in a folder.
-command: python alignment.py /path/to/map /path/to/txt_folder /path/to/output_folder
+command: python alignment.py /path/to/txt_folder /path/to/map /path/to/output_folder
 
 - rasterize.py: draw the vector data from the alignment script in a black image which is the same size of map.
 command python rasterize.py /path/to/folder /path/to/map /path/to/output_map
