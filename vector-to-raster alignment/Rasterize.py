@@ -3,11 +3,11 @@ import numpy as np
 import os
 import sys
 
-map_path = sys.args[1]
+map_path = sys.args[2]
 map_img = cv2.imread(map_path)
 print map_img.shape
 count = 0
-aligned_shp = np.zeros((map_img.shape[0],map_img.shape[1],map_img.shape[2]))
+aligned_shp = np.zeros((map_img.shape[0],map_img.shape[1],map_img.shape[1]))
 for root, dirs, files in os.walk(sys.args[2]):
     print files
     for f in files:
@@ -20,6 +20,6 @@ for root, dirs, files in os.walk(sys.args[2]):
                 cv2.line(aligned_shp,(points[p][0],-points[p][1]),(points[p+1][0],-points[p+1][1]),(255,255,255),2)
         count += 1
 
-cv2.imwrite('CA_Bray_railroads_aligned_2001.png', aligned_shp)
+cv2.imwrite(sys.args[3], aligned_shp)
 
 
