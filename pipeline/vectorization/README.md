@@ -5,3 +5,10 @@ The target is to convert recognition results into vector data, a structured data
 Inputs: rasterized recognition results, georeferenced maps
 
 Output: shapefile in the same coordinate system of georeferenced map
+
+**Dependencies**
+skimage,
+cv2,
+itertools,
+scipy,
+collections 
