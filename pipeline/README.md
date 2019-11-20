@@ -1,4 +1,5 @@
 **The pipeline is for cotent extraction from georeferenced documents.**
+
 The pipeline has three components: training data generation, content extraction, content vecterization
 
 **Training data gneration: **
