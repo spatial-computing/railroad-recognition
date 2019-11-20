@@ -18,7 +18,7 @@ ALIGN_PATH = os.path.join(MAP_DIR, ALIGN_FOLDER_NAME)
 map_path = os.path.join(MAP_DIR, MAP_NAME+'.tif')
 
 
-def convert_to_image_coord(x,y,path): # convert geocoord to image coordinate
+def coor2pixel(x,y,path): # convert geocoord to image coordinate
     dataset = gdal.Open( path, GA_ReadOnly )
     adfGeoTransform = dataset.GetGeoTransform()
 
@@ -49,14 +49,14 @@ def generator_from_shp(map_path, SHP_PATH):
                 for i in points["coordinates"]:
                     for j in i:
                         tmpt = j
-                        p = convert_to_image_coord(tmpt[0],tmpt[1],map_path)
+                        p = coor2pixel(tmpt[0],tmpt[1],map_path)
                         print p
                         outputfile.writelines(str(p[0])+","+str(p[1])+'\n')
                         qgis.writelines(str(p[1])+","+str(-p[0])+'\n')
             elif points['type'] ==  "LineString":
                 for i in points['coordinates']:
                     tmpt = i
-                    p = convert_to_image_coord(tmpt[0],tmpt[1],map_path)
+                    p = coor2pixel(tmpt[0],tmpt[1],map_path)
                     outputfile.writelines(str(p[0])+","+str(p[1])+'\n')
                     qgis.writelines(str(p[1])+","+str(-p[0])+'\n')
 
