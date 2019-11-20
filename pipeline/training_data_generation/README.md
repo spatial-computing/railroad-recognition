@@ -39,7 +39,7 @@ Two functions:
 **generator_from_shp**: take georeferenced map and vector data of other objcts to generate a txt file for negative samples
 
 **Dependencies:**
-opencv
-osgeo
-gdal
+opencv,
+osgeo,
+gdal,
 gdal_const
