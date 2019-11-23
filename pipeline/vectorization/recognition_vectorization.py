@@ -9,10 +9,11 @@ from scipy.spatial.distance import pdist, squareform
 from collections import OrderedDict
 import shp_writer
 
-DATA_DIR = 'C:\Users\weiweiduan\Documents\Map_proj_data\CO\CO_Louisville_450550_1950_24000_bag\data'
-RASTER_NAME = 'recognition_results\louisville_railroads_1950_pspnet.png'
-OUTPUT_NAME = 'recognition_results\louisville_railroads_1950_pspnet.shp'
+DATA_DIR = 'C:\Users\weiweiduan\Documents\Map_proj_data\CO\CO_Louisville_450547_1957_24000_bag\data'
+RASTER_NAME = 'recognition_results\louisville_railroads_1957_pspnet.png'
+OUTPUT_NAME = 'recognition_results\louisville_railroads_1957_4269.shp'
 OUTPUT_PATH = os.path.join(DATA_DIR, OUTPUT_NAME)
+EPSG = 4269
 COOR_SYS_PATH = os.path.join(DATA_DIR, DATA_DIR.split('\\')[-2][:-4]+'_geo.tif')
 RASTER_PATH = os.path.join(DATA_DIR, RASTER_NAME)
 
@@ -327,4 +328,4 @@ def build_graph(root, debug=False, add_small=True, fix_borders=True):
 if __name__ == "__main__":
     res = build_graph(RASTER_PATH)
     # print(res)
-    shp_writer.createShapefile(OUTPUT_PATH, res, COOR_SYS_PATH)
+    shp_writer.createShapefile(OUTPUT_PATH, res, COOR_SYS_PATH, EPSG)
