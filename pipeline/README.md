@@ -8,7 +8,7 @@ The pipeline has three components: training data generation, content extraction,
   
   Outputs: annotated positive and negative data for content extraction
 
-**Content extraction:**
+**Semantic Segmentation:**
 
   Inputs: maps, annotations, pixel coordinates for both positive and negeative samples
   
