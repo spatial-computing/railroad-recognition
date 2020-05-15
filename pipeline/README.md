@@ -16,6 +16,7 @@ The pipeline has three components: training data generation, content extraction,
   
   Note: for semantic segmentation, the annotation is a black-white image the same size as the map
         the output is also a black-white image, whites are predicted positive.
+  Keras version == 2.1.6, TensorFlow-gpu version == 1.2.0
         
 **Vectorization:**
 
