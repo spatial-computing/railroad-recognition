@@ -3,9 +3,12 @@
 
 
 ### 1) Rerequired libraries
-Keras == 2.1.6 \\
-tensorflow-gpu == 1.2.0 \\
-cuda == 8.0 \\
+Keras == 2.1.6 
+
+tensorflow-gpu == 1.2.0 
+
+cuda == 8.0 
+
 osgeo python library
 
 ### 2) Run scripts
