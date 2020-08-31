@@ -92,6 +92,8 @@ def filtered_shapefile_poly(in_shp, out_shp):
 parser = argparse.ArgumentParser()
 parser.add_argument("--pred_path", type=str)
 parser.add_argument("--tif_map_path", type=str)
+args = parser.parse_args()
+
 png_path = args.pred_path
 map_path = args.tif_map_path
 
