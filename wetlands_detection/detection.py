@@ -8,6 +8,7 @@ import os
 import cv2
 from models.vgg import vgg16
 import argparse
+from utils import load_data, data_augmentation, helper
 
 WIN_SIZE = 40
 NUM_CLS = 2
