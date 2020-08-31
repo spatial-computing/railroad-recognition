@@ -16,6 +16,8 @@ parser = argparse.ArgumentParser()
 parser.add_argument("--test_map_path", type=str)
 parser.add_argument("--pred_path", type=str)
 parser.add_argument("--model_path", type=str)
+args = parser.parse_args()
+
 TEST_MAP_PATH = args.test_map_path
 PRED_PATH = args.pred_path
 STRIDE = 20
