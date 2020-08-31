@@ -6,7 +6,7 @@ import numpy as np
 import argparse
 import os
 import cv2
-from models import vgg16
+from models.vgg import vgg16
 import argparse
 
 WIN_SIZE = 40
